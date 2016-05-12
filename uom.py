@@ -55,7 +55,7 @@ class Uom(ModelSQL, ModelView):
 
     @classmethod
     def __register__(cls, module_name):
-        cursor = Transaction().cursor
+        cursor = Transaction().connection.cursor()
         model_data = Table('ir_model_data')
         # Migration from 1.6: corrected misspelling of ounce (was once)
         cursor.execute(*model_data.update(
@@ -76,7 +76,7 @@ class Uom(ModelSQL, ModelView):
         cls._order.insert(0, ('name', 'ASC'))
         cls._error_messages.update({
                 'change_uom_rate_title': ('You cannot change Rate, Factor or '
-                    'Category on a Unit of Measure. '),
+                    'Category on a Unit of Measure.'),
                 'change_uom_rate': ('If the UOM is still not used, you can '
                     'delete it otherwise you can deactivate it '
                     'and create a new one.'),
@@ -134,8 +134,8 @@ class Uom(ModelSQL, ModelView):
             ('symbol',) + tuple(clause[1:]),
             ]
 
-    @staticmethod
-    def round(number, precision=1.0):
+    def round(self, number):
+        precision = self.rounding
         i, d = divmod(precision, 1)
         base = round(number / precision)
         # Instead of multiply by the decimal part, we must divide by the
@@ -232,7 +232,7 @@ class Uom(ModelSQL, ModelView):
             amount = amount * to_uom.rate
 
         if round:
-            amount = cls.round(amount, to_uom.rounding)
+            amount = to_uom.round(amount)
 
         return amount
 

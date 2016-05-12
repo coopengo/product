@@ -1,3 +1,11 @@
+Version 4.0.0 - 2016-05-02
+* Bug fixes (see mercurial logs for details)
+* Replace category by categories on Template
+* Add Python3 support
+* Add configuration for default cost price method
+* Change Uom.round into an instance method
+* Add Function fields on Product from Template
+
 Version 3.8.0 - 2015-11-02
 * Bug fixes (see mercurial logs for details)
 * Be more strict on unit of measure conversion

@@ -1,14 +1,20 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
-from trytond.model import ModelView, ModelSQL, fields
+import copy
+import logging
+
+from sql import Column
+
+from trytond.model import ModelView, ModelSQL, Model, fields
 from trytond.pyson import Eval
 from trytond.transaction import Transaction
 from trytond.pool import Pool
 from trytond import backend
-from trytond.const import OPERATORS
 from trytond.config import config
 
-__all__ = ['Template', 'Product', 'price_digits']
+__all__ = ['Template', 'Product', 'price_digits', 'TemplateFunction',
+    'TemplateCategory']
+logger = logging.getLogger(__name__)
 
 STATES = {
     'readonly': ~Eval('active', True),
@@ -18,6 +24,10 @@ TYPES = [
     ('goods', 'Goods'),
     ('assets', 'Assets'),
     ('service', 'Service'),
+    ]
+COST_PRICE_METHODS = [
+    ('fixed', 'Fixed'),
+    ('average', 'Average'),
     ]
 
 price_digits = (16, config.getint('product', 'price_decimal', default=4))
@@ -36,17 +46,12 @@ class Template(ModelSQL, ModelView):
             'invisible': Eval('type', 'goods') != 'goods',
             },
         depends=['active', 'type'])
-    category = fields.Many2One('product.category', 'Category',
-        states=STATES, depends=DEPENDS)
     list_price = fields.Property(fields.Numeric('List Price', states=STATES,
             digits=price_digits, depends=DEPENDS, required=True))
     cost_price = fields.Property(fields.Numeric('Cost Price', states=STATES,
             digits=price_digits, depends=DEPENDS, required=True))
-    cost_price_method = fields.Property(fields.Selection([
-                ("fixed", "Fixed"),
-                ("average", "Average")
-                ], 'Cost Method', required=True, states=STATES,
-            depends=DEPENDS))
+    cost_price_method = fields.Property(fields.Selection(COST_PRICE_METHODS,
+            'Cost Method', required=True, states=STATES, depends=DEPENDS))
     default_uom = fields.Many2One('product.uom', 'Default UOM', required=True,
         states=STATES, depends=DEPENDS)
     default_uom_category = fields.Function(
@@ -54,18 +59,20 @@ class Template(ModelSQL, ModelView):
         'on_change_with_default_uom_category',
         searcher='search_default_uom_category')
     active = fields.Boolean('Active', select=True)
+    categories = fields.Many2Many('product.template-product.category',
+        'template', 'category', 'Categories', states=STATES, depends=DEPENDS)
     products = fields.One2Many('product.product', 'template', 'Variants',
         states=STATES, depends=DEPENDS)
 
     @classmethod
     def __register__(cls, module_name):
         TableHandler = backend.get('TableHandler')
-        cursor = Transaction().cursor
+        cursor = Transaction().connection.cursor()
         sql_table = cls.__table__()
 
         super(Template, cls).__register__(module_name)
 
-        table = TableHandler(cursor, cls, module_name)
+        table = TableHandler(cls, module_name)
         # Migration from 2.2: category is no more required
         table.not_null_action('category', 'remove')
 
@@ -79,6 +86,12 @@ class Template(ModelSQL, ModelView):
                 values=['goods'],
                 where=sql_table.type.in_(['stockable', 'consumable'])))
 
+        # Migration from 3.8: rename category into categories
+        if table.column_exist('category'):
+            logger.warning(
+                'The column "category" on table "%s" must be dropped manually',
+                cls._table)
+
     @staticmethod
     def default_active():
         return True
@@ -90,10 +103,6 @@ class Template(ModelSQL, ModelView):
     @staticmethod
     def default_consumable():
         return False
-
-    @staticmethod
-    def default_cost_price_method():
-        return 'fixed'
 
     @staticmethod
     def default_products():
@@ -129,6 +138,36 @@ class Template(ModelSQL, ModelView):
             yield record, rec_name, icon
 
 
+class TemplateFunction(fields.Function):
+
+    def __init__(self, field):
+        super(TemplateFunction, self).__init__(
+            field, 'get_template', searcher='search_template')
+
+    def __copy__(self):
+        return TemplateFunction(copy.copy(self._field))
+
+    def __deepcopy__(self, memo):
+        return TemplateFunction(copy.deepcopy(self._field, memo))
+
+    @staticmethod
+    def order(name):
+        @classmethod
+        def order(cls, tables):
+            pool = Pool()
+            Template = pool.get('product.template')
+            product, _ = tables[None]
+            if 'template' not in tables:
+                template = Template.__table__()
+                tables['template'] = {
+                    None: (template, product.template == template.id),
+                    }
+            else:
+                template = tables['template']
+            return [Column(template, name)]
+        return order
+
+
 class Product(ModelSQL, ModelView):
     "Product Variant"
     __name__ = "product.product"
@@ -141,14 +180,63 @@ class Product(ModelSQL, ModelView):
     description = fields.Text("Description", translate=True, states=STATES,
         depends=DEPENDS)
     active = fields.Boolean('Active', select=True)
-    default_uom = fields.Function(fields.Many2One('product.uom',
-            'Default UOM'), 'get_default_uom', searcher='search_default_uom')
-    type = fields.Function(fields.Selection(TYPES, 'Type'),
-        'on_change_with_type', searcher='search_type')
     list_price_uom = fields.Function(fields.Numeric('List Price',
         digits=price_digits), 'get_price_uom')
     cost_price_uom = fields.Function(fields.Numeric('Cost Price',
         digits=price_digits), 'get_price_uom')
+
+    @classmethod
+    def __setup__(cls):
+        pool = Pool()
+        Template = pool.get('product.template')
+
+        if not hasattr(cls, '_no_template_field'):
+            cls._no_template_field = set()
+        cls._no_template_field.update(['products'])
+
+        super(Product, cls).__setup__()
+
+        for attr in dir(Template):
+            tfield = getattr(Template, attr)
+            if not isinstance(tfield, fields.Field):
+                continue
+            if attr in cls._no_template_field:
+                continue
+            field = getattr(cls, attr, None)
+            if not field or isinstance(field, TemplateFunction):
+                setattr(cls, attr, TemplateFunction(copy.deepcopy(tfield)))
+                order_method = getattr(cls, 'order_%s' % attr, None)
+                if (not order_method
+                        and not isinstance(tfield, (
+                                fields.Function,
+                                fields.One2Many,
+                                fields.Many2Many))):
+                    order_method = TemplateFunction.order(attr)
+                    setattr(cls, 'order_%s' % attr, order_method)
+
+    @fields.depends('template')
+    def on_change_template(self):
+        for name, field in self._fields.iteritems():
+            if isinstance(field, TemplateFunction):
+                if self.template:
+                    value = getattr(self.template, name)
+                else:
+                    value = None
+                setattr(self, name, value)
+
+    def get_template(self, name):
+        value = getattr(self.template, name)
+        if isinstance(value, Model):
+            return value.id
+        elif (isinstance(value, (list, tuple))
+                and value and isinstance(value[0], Model)):
+            return [r.id for r in value]
+        else:
+            return value
+
+    @classmethod
+    def search_template(cls, name, clause):
+        return [('template.%s' % name,) + tuple(clause[1:])]
 
     @classmethod
     def order_rec_name(cls, tables):
@@ -169,13 +257,6 @@ class Product(ModelSQL, ModelView):
     def default_active():
         return True
 
-    def __getattr__(self, name):
-        try:
-            return super(Product, self).__getattr__(name)
-        except AttributeError:
-            pass
-        return getattr(self.template, name)
-
     def get_rec_name(self, name):
         if self.code:
             return '[' + self.code + '] ' + self.name
@@ -192,22 +273,6 @@ class Product(ModelSQL, ModelView):
             ('code',) + tuple(clause[1:]),
             ('template.name',) + tuple(clause[1:]),
             ]
-
-    def get_default_uom(self, name):
-        return self.template.default_uom.id
-
-    @classmethod
-    def search_default_uom(cls, name, clause):
-        return [('template.default_uom',) + tuple(clause[1:])]
-
-    @fields.depends('template')
-    def on_change_with_type(self, name=None):
-        if self.template:
-            return self.template.type
-
-    @classmethod
-    def search_type(cls, name, clause):
-        return [('template.type',) + tuple(clause[1:])]
 
     @staticmethod
     def get_price_uom(products, name):
@@ -230,26 +295,11 @@ class Product(ModelSQL, ModelView):
             icon = icon or 'tryton-product'
             yield id_, rec_name, icon
 
-    @classmethod
-    def search_domain(cls, domain, active_test=True, tables=None):
-        def is_leaf(expression):
-            return (isinstance(expression, (list, tuple))
-                and len(expression) > 2
-                and isinstance(expression[1], basestring)
-                and expression[1] in OPERATORS)  # TODO remove OPERATORS test
 
-        def convert_domain(domain):
-            'Replace missing product field by the template one'
-            if is_leaf(domain):
-                field = domain[0].split('.', 1)[0]
-                if not getattr(cls, field, None):
-                    field = 'template.' + domain[0]
-                    return (field,) + tuple(domain[1:])
-                else:
-                    return domain
-            elif domain in ['OR', 'AND']:
-                return domain
-            else:
-                return [convert_domain(d) for d in domain]
-        return super(Product, cls).search_domain(convert_domain(domain),
-            active_test=active_test, tables=tables)
+class TemplateCategory(ModelSQL):
+    'Template - Category'
+    __name__ = 'product.template-product.category'
+    template = fields.Many2One('product.template', 'Template',
+        ondelete='CASCADE', required=True, select=True)
+    category = fields.Many2One('product.category', 'Category',
+        ondelete='CASCADE', required=True, select=True)

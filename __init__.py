@@ -5,6 +5,7 @@ from trytond.pool import Pool
 from .uom import *
 from .category import *
 from .product import *
+from .configuration import *
 
 
 def register():
@@ -14,4 +15,6 @@ def register():
         Category,
         Template,
         Product,
+        TemplateCategory,
+        Configuration,
         module='product', type_='model')
