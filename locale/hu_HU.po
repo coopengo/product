@@ -280,9 +280,10 @@ msgctxt "field:product.template-product.category,rec_name:"
 msgid "Name"
 msgstr "Név"
 
+#, fuzzy
 msgctxt "field:product.template-product.category,template:"
 msgid "Template"
-msgstr ""
+msgstr "Űrlap adószámlához"
 
 #, fuzzy
 msgctxt "field:product.template-product.category,write_date:"
@@ -416,6 +417,11 @@ msgctxt "model:ir.action,name:act_product_form"
 msgid "Variants"
 msgstr "Változás"
 
+#, fuzzy
+msgctxt "model:ir.action,name:act_product_from_template"
+msgid "Variants"
+msgstr "Változás"
+
 msgctxt "model:ir.action,name:act_template_by_category"
 msgid "Product by Category"
 msgstr "Cikk kategória szerint"
@@ -440,9 +446,10 @@ msgctxt "model:ir.ui.menu,name:menu_category_tree"
 msgid "Categories"
 msgstr "Cikk kategóriák"
 
+#, fuzzy
 msgctxt "model:ir.ui.menu,name:menu_configuration"
 msgid "Configuration"
-msgstr ""
+msgstr "Beállítások"
 
 msgctxt "model:ir.ui.menu,name:menu_main_product"
 msgid "Product"
@@ -780,20 +787,6 @@ msgctxt "model:res.group,name:group_product_admin"
 msgid "Product Administration"
 msgstr "Cikk adminisztráció"
 
-msgctxt "selection:product.configuration,default_cost_price_method:"
-msgid ""
-msgstr ""
-
-#, fuzzy
-msgctxt "selection:product.configuration,default_cost_price_method:"
-msgid "Average"
-msgstr "Átlag"
-
-#, fuzzy
-msgctxt "selection:product.configuration,default_cost_price_method:"
-msgid "Fixed"
-msgstr "Rögzített"
-
 #, fuzzy
 msgctxt "selection:product.product,cost_price_method:"
 msgid "Average"
@@ -840,36 +833,20 @@ msgctxt "view:product.category:"
 msgid "Children"
 msgstr "Alárendelt (kategória)"
 
-#, fuzzy
-msgctxt "view:product.category:"
-msgid "Product Categories"
-msgstr "Cikk kategória"
-
-msgctxt "view:product.category:"
-msgid "Product Category"
-msgstr "Cikk kategória"
-
-msgctxt "view:product.configuration:"
-msgid "Party Configuration"
-msgstr ""
-
-msgctxt "view:product.product:"
-msgid "Product"
-msgstr "Cikk"
-
-msgctxt "view:product.product:"
-msgid "Products"
-msgstr "Cikk"
-
 msgctxt "view:product.template:"
 msgid "General"
 msgstr ""
 
-msgctxt "view:product.template:"
+#, fuzzy
+msgctxt "view:product.configuration:"
+msgid "Party Configuration"
+msgstr "Partner beállítások"
+
+msgctxt "view:product.product:"
 msgid "Product"
 msgstr "Cikk"
 
-msgctxt "view:product.template:"
+msgctxt "view:product.product:"
 msgid "Products"
 msgstr "Cikk"
 
