@@ -313,24 +313,92 @@ class ProductTestCase(ModuleTestCase):
                     ], count=True), 2)
 
     @with_transaction()
-    def test_uom_round(self):
-        'Test uom round function'
+    def test_uom_rounding(self):
+        'Test uom rounding functions'
         pool = Pool()
         Uom = pool.get('product.uom')
         tests = [
-            (2.53, .1, 2.5),
-            (3.8, .1, 3.8),
-            (3.7, .1, 3.7),
-            (1.3, .5, 1.5),
-            (1.1, .3, 1.2),
-            (17, 10, 20),
-            (7, 10, 10),
-            (4, 10, 0),
-            (17, 15, 15),
-            (2.5, 1.4, 2.8),
+            (2.53, .1, 2.5, 2.6, 2.5),
+            (3.8, .1, 3.8, 3.8, 3.8),
+            (3.7, .1, 3.7, 3.7, 3.7),
+            (1.3, .5, 1.5, 1.5, 1.0),
+            (1.1, .3, 1.2, 1.2, 0.9),
+            (17, 10, 20, 20, 10),
+            (7, 10, 10, 10, 0),
+            (4, 10, 0, 10, 0),
+            (17, 15, 15, 30, 15),
+            (2.5, 1.4, 2.8, 2.8, 1.4),
             ]
-        for number, precision, result in tests:
-            self.assertEqual(Uom(rounding=precision).round(number), result)
+        for number, precision, round, ceil, floor in tests:
+            uom = Uom(rounding=precision)
+            self.assertEqual(uom.round(number), round)
+            self.assertEqual(uom.ceil(number), ceil)
+            self.assertEqual(uom.floor(number), floor)
+
+    @with_transaction()
+    def test_product_order(self):
+        'Test product field order'
+        pool = Pool()
+        Template = pool.get('product.template')
+        Product = pool.get('product.product')
+        Uom = pool.get('product.uom')
+
+        uom, = Uom.search([], limit=1)
+        values1 = {
+            'name': 'Product A',
+            'type': 'assets',
+            'list_price': Decimal('10'),
+            'cost_price': Decimal('5'),
+            'default_uom': uom.id,
+            'products': [('create', [{'code': 'AA'}])],
+            }
+        values2 = {
+            'name': 'Product B',
+            'type': 'goods',
+            'list_price': Decimal('10'),
+            'cost_price': Decimal('5'),
+            'default_uom': uom.id,
+            'products': [('create', [{'code': 'BB'}])],
+            }
+
+        template1, template2 = Template.create([values1, values2])
+        product1, product2 = Product.search([])
+
+        # Non-inherited field.
+        self.assertEqual(
+            Product.search([], order=[('code', 'ASC')]), [product1, product2])
+        self.assertEqual(
+            Product.search([], order=[('code', 'DESC')]), [product2, product1])
+        self.assertEqual(Product.search(
+                [('name', 'like', '%')], order=[('code', 'ASC')]),
+                [product1, product2])
+        self.assertEqual(Product.search(
+                [('name', 'like', '%')], order=[('code', 'DESC')]),
+                [product2, product1])
+
+        # Inherited field with custom order.
+        self.assertEqual(
+            Product.search([], order=[('name', 'ASC')]), [product1, product2])
+        self.assertEqual(
+            Product.search([], order=[('name', 'DESC')]), [product2, product1])
+        self.assertEqual(Product.search(
+                [('name', 'like', '%')], order=[('name', 'ASC')]),
+                [product1, product2])
+        self.assertEqual(Product.search(
+                [('name', 'like', '%')], order=[('name', 'DESC')]),
+                [product2, product1])
+
+        # Inherited field without custom order.
+        self.assertEqual(
+            Product.search([], order=[('type', 'ASC')]), [product1, product2])
+        self.assertEqual(
+            Product.search([], order=[('type', 'DESC')]), [product2, product1])
+        self.assertEqual(Product.search(
+                [('name', 'like', '%')], order=[('type', 'ASC')]),
+                [product1, product2])
+        self.assertEqual(Product.search(
+                [('name', 'like', '%')], order=[('type', 'DESC')]),
+                [product2, product1])
 
 
 def suite():
