@@ -31,7 +31,7 @@ class Category(ModelSQL, ModelView):
 
     @classmethod
     def search_rec_name(cls, name, clause):
-        if isinstance(clause[2], basestring):
+        if isinstance(clause[2], str):
             values = clause[2].split('/')
             values.reverse()
             domain = []
