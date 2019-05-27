@@ -13,6 +13,7 @@ from trytond.transaction import Transaction
 from trytond.pool import Pool
 from trytond import backend
 from trytond.config import config
+from trytond.tools import lstrip_wildcard
 from trytond.tools.multivalue import migrate_property
 from trytond.modules.company.model import (
     CompanyMultiValueMixin, CompanyValueMixin)
@@ -239,6 +240,13 @@ class Product(
                                 fields.Many2Many))):
                     order_method = TemplateFunction.order(attr)
                     setattr(cls, 'order_%s' % attr, order_method)
+                if isinstance(tfield, fields.One2Many):
+                    getattr(cls, attr).setter = '_set_template_function'
+
+    @classmethod
+    def _set_template_function(cls, products, name, value):
+        # Prevent NotImplementedError for One2Many
+        pass
 
     @fields.depends('template')
     def on_change_template(self):
@@ -302,8 +310,11 @@ class Product(
             bool_op = 'AND'
         else:
             bool_op = 'OR'
+        code_value = clause[2]
+        if clause[1].endswith('like'):
+            code_value = lstrip_wildcard(clause[2])
         return [bool_op,
-            ('code',) + tuple(clause[1:]),
+            ('code', clause[1], code_value) + tuple(clause[3:]),
             ('template.name',) + tuple(clause[1:]),
             ]
 
