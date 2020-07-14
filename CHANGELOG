@@ -1,5 +1,17 @@
-Version 5.2.1 - 2019-07-01
+Version 5.6.0 - 2020-05-04
 * Bug fixes (see mercurial logs for details)
+* Add round_price
+* Make product code unique
+* Add code to template as variant prefix code
+* Hide product fields inherited from template when empty
+* Skip default products when template is created from product
+* Search also on variant name when searching on template record name
+
+Version 5.4.0 - 2019-11-04
+* Bug fixes (see mercurial logs for details)
+* Allow the product code to be set by a sequence
+* Allow UoM conversion between different categories
+* Add product identifiers
 
 Version 5.2.0 - 2019-05-06
 * Bug fixes (see mercurial logs for details)

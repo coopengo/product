@@ -1,9 +1,12 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
+import doctest
 import unittest
 from decimal import Decimal
 import trytond.tests.test_tryton
 from trytond.tests.test_tryton import ModuleTestCase, with_transaction
+from trytond.tests.test_tryton import doctest_teardown
+from trytond.tests.test_tryton import doctest_checker
 from trytond.transaction import Transaction
 from trytond.pool import Pool
 
@@ -165,6 +168,29 @@ class ProductTestCase(ModuleTestCase):
             from_uom, qty, None, True)
 
     @with_transaction()
+    def test_uom_compute_qty_category(self):
+        "Test uom compute_qty with different category"
+        pool = Pool()
+        Uom = pool.get('product.uom')
+
+        g, = Uom.search([
+                ('name', '=', "Gram"),
+                ], limit=1)
+        m3, = Uom.search([
+                ('name', '=', "Cubic meter"),
+                ], limit=1)
+
+        for quantity, result, keys in [
+                (10000, 0.02, dict(factor=2)),
+                (20000, 0.01, dict(rate=2)),
+                (30000, 0.01, dict(rate=3, factor=0.333333, round=False)),
+                ]:
+            msg = 'quantity: %r, keys: %r' % (quantity, keys)
+            self.assertEqual(
+                Uom.compute_qty(g, quantity, m3, **keys), result,
+                msg=msg)
+
+    @with_transaction()
     def test_uom_compute_price(self):
         'Test uom compute_price function'
         pool = Pool()
@@ -207,6 +233,30 @@ class ProductTestCase(ModuleTestCase):
             None, price, to_uom)
         self.assertRaises(ValueError, Uom.compute_price,
             from_uom, price, None)
+
+    @with_transaction()
+    def test_uom_compute_price_category(self):
+        "Test uom compute_price with different category"
+        pool = Pool()
+        Uom = pool.get('product.uom')
+
+        g, = Uom.search([
+                ('name', '=', "Gram"),
+                ], limit=1)
+        m3, = Uom.search([
+                ('name', '=', "Cubic meter"),
+                ], limit=1)
+
+        for price, result, keys in [
+                (Decimal('0.001'), Decimal('500'), dict(factor=2)),
+                (Decimal('0.002'), Decimal('4000'), dict(rate=2)),
+                (Decimal('0.003'), Decimal('9000'), dict(
+                        rate=3, factor=0.333333)),
+                ]:
+            msg = 'price: %r, keys: %r' % (price, keys)
+            self.assertEqual(
+                Uom.compute_price(g, price, m3, **keys), result,
+                msg=msg)
 
     @with_transaction()
     def test_product_search_domain(self):
@@ -345,14 +395,14 @@ class ProductTestCase(ModuleTestCase):
             'type': 'assets',
             'list_price': Decimal('10'),
             'default_uom': uom.id,
-            'products': [('create', [{'code': 'AA'}])],
+            'products': [('create', [{'suffix_code': 'AA'}])],
             }
         values2 = {
             'name': 'Product B',
             'type': 'goods',
             'list_price': Decimal('10'),
             'default_uom': uom.id,
-            'products': [('create', [{'code': 'BB'}])],
+            'products': [('create', [{'suffix_code': 'BB'}])],
             }
 
         template1, template2 = Template.create([values1, values2])
@@ -399,4 +449,14 @@ def suite():
     suite = trytond.tests.test_tryton.suite()
     suite.addTests(unittest.TestLoader().loadTestsFromTestCase(
         ProductTestCase))
+    suite.addTests(doctest.DocFileSuite(
+            'scenario_product_variant.rst',
+            tearDown=doctest_teardown, encoding='utf-8',
+            checker=doctest_checker,
+            optionflags=doctest.REPORT_ONLY_FIRST_FAILURE))
+    suite.addTests(doctest.DocFileSuite(
+            'scenario_product_identifier.rst',
+            tearDown=doctest_teardown, encoding='utf-8',
+            checker=doctest_checker,
+            optionflags=doctest.REPORT_ONLY_FIRST_FAILURE))
     return suite
