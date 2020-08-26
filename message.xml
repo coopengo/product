@@ -2,7 +2,7 @@
 <!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
 this repository contains the full copyright notices and license terms. -->
 <tryton>
-    <data group="1">
+    <data grouped="1">
         <record model="ir.message" id="msg_uom_modify_factor">
             <field name="text">You cannot modify the factor of UOM "%(uom)s".</field>
         </record>
@@ -20,6 +20,12 @@ this repository contains the full copyright notices and license terms. -->
         </record>
         <record model="ir.message" id="msg_uom_no_zero_factor_rate">
             <field name="text">Rate and factor can not be both equal to zero.</field>
+        </record>
+        <record model="ir.message" id="msg_invalid_code">
+            <field name="text">The %(type)s "%(code)s" for product "%(product)s" is not valid.</field>
+        </record>
+        <record model="ir.message" id="msg_product_code_unique">
+            <field name="text">Code of active product must be unique.</field>
         </record>
     </data>
 </tryton>

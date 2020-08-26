@@ -3,11 +3,17 @@
 import copy
 import logging
 from decimal import Decimal
+from importlib import import_module
 
-from sql import Null, Column
+import stdnum
+import stdnum.exceptions
+from sql import Null, Column, Literal
+from sql.operators import Equal
 
+from trytond.i18n import gettext
 from trytond.model import (
-    ModelView, ModelSQL, Model, UnionMixin, DeactivableMixin, fields)
+    ModelView, ModelSQL, Model, UnionMixin, DeactivableMixin, sequence_ordered,
+    Exclude, fields)
 from trytond.pyson import Eval
 from trytond.transaction import Transaction
 from trytond.pool import Pool
@@ -17,16 +23,12 @@ from trytond.tools import lstrip_wildcard
 from trytond.tools.multivalue import migrate_property
 from trytond.modules.company.model import (
     CompanyMultiValueMixin, CompanyValueMixin)
+from .exceptions import InvalidIdentifierCode
 
-__all__ = ['Template', 'Product', 'price_digits', 'TemplateFunction',
-    'ProductListPrice', 'ProductCostPriceMethod', 'ProductCostPrice',
-    'TemplateCategory', 'TemplateCategoryAll']
+
+__all__ = ['price_digits', 'round_price', 'TemplateFunction']
 logger = logging.getLogger(__name__)
 
-STATES = {
-    'readonly': ~Eval('active', True),
-    }
-DEPENDS = ['active']
 TYPES = [
     ('goods', 'Goods'),
     ('assets', 'Assets'),
@@ -40,45 +42,61 @@ COST_PRICE_METHODS = [
 price_digits = (16, config.getint('product', 'price_decimal', default=4))
 
 
+def round_price(value, rounding=None):
+    "Round price using the price digits"
+    return value.quantize(
+        Decimal(1) / 10 ** price_digits[1], rounding=rounding)
+
+
 class Template(
         DeactivableMixin, ModelSQL, ModelView, CompanyMultiValueMixin):
     "Product Template"
     __name__ = "product.template"
-    name = fields.Char('Name', size=None, required=True, translate=True,
-        select=True, states=STATES, depends=DEPENDS)
-    type = fields.Selection(TYPES, 'Type', required=True, states=STATES,
-        depends=DEPENDS)
+    name = fields.Char(
+        "Name", size=None, required=True, translate=True, select=True)
+    code = fields.Char("Code", select=True)
+    type = fields.Selection(TYPES, "Type", required=True)
     consumable = fields.Boolean('Consumable',
         states={
-            'readonly': ~Eval('active', True),
             'invisible': Eval('type', 'goods') != 'goods',
             },
-        depends=['active', 'type'])
+        depends=['type'],
+        help="Check to allow stock moves to be assigned "
+        "regardless of stock level.")
     list_price = fields.MultiValue(fields.Numeric(
             "List Price", required=True, digits=price_digits,
-            states=STATES, depends=DEPENDS))
+            help="The standard price the product is sold at."))
     list_prices = fields.One2Many(
         'product.list_price', 'template', "List Prices")
     cost_price = fields.Function(fields.Numeric(
-            "Cost Price", digits=price_digits), 'get_cost_price')
+            "Cost Price", digits=price_digits,
+            help="The amount it costs to purchase or make the product, "
+            "or carry out the service."),
+        'get_cost_price')
     cost_price_method = fields.MultiValue(fields.Selection(
             COST_PRICE_METHODS, "Cost Price Method", required=True,
-            states=STATES, depends=DEPENDS))
+            help="The method used to calculate the cost price."))
     cost_price_methods = fields.One2Many(
         'product.cost_price_method', 'template', "Cost Price Methods")
-    default_uom = fields.Many2One('product.uom', 'Default UOM', required=True,
-        states=STATES, depends=DEPENDS)
+    default_uom = fields.Many2One('product.uom', "Default UOM", required=True,
+        help="The standard unit of measure for the product.\n"
+        "Used internally when calculating the stock levels of goods "
+        "and assets.")
     default_uom_category = fields.Function(
         fields.Many2One('product.uom.category', 'Default UOM Category'),
         'on_change_with_default_uom_category',
         searcher='search_default_uom_category')
-    categories = fields.Many2Many('product.template-product.category',
-        'template', 'category', 'Categories', states=STATES, depends=DEPENDS)
+    categories = fields.Many2Many(
+        'product.template-product.category', 'template', 'category',
+        "Categories",
+        help="The categories that the product is in.\n"
+        "Used to group similar products together.")
     categories_all = fields.Many2Many(
         'product.template-product.category.all',
         'template', 'category', "Categories", readonly=True)
-    products = fields.One2Many('product.product', 'template', 'Variants',
-        states=STATES, depends=DEPENDS)
+    products = fields.One2Many(
+        'product.product', 'template', "Variants",
+        help="The different variants the product comes in.")
 
     @classmethod
     def __register__(cls, module_name):
@@ -101,6 +119,29 @@ class Template(
             return pool.get('product.cost_price_method')
         return super(Template, cls).multivalue_model(field)
 
+    def get_rec_name(self, name):
+        if self.code:
+            return '[' + self.code + ']' + self.name
+        else:
+            return self.name
+
+    @classmethod
+    def search_rec_name(cls, name, clause):
+        if clause[1].startswith('!') or clause[1].startswith('not '):
+            bool_op = 'AND'
+        else:
+            bool_op = 'OR'
+        code_value = clause[2]
+        if clause[1].endswith('like'):
+            code_value = lstrip_wildcard(clause[2])
+        return [bool_op,
+            ('name',) + tuple(clause[1:]),
+            ('code', clause[1], code_value) + tuple(clause[3:]),
+            ('products.code', clause[1], code_value) + tuple(clause[3:]),
+            ('products.identifiers.code', clause[1], code_value)
+            + tuple(clause[3:]),
+            ]
+
     @staticmethod
     def default_type():
         return 'goods'
@@ -121,9 +162,11 @@ class Template(
         return Configuration(1).get_multivalue(
             'default_cost_price_method', **pattern)
 
-    @staticmethod
-    def default_products():
-        if Transaction().user == 0:
+    @classmethod
+    def default_products(cls):
+        transaction = Transaction()
+        if (transaction.user == 0
+                or not transaction.context.get('default_products', True)):
             return []
         return [{}]
 
@@ -144,10 +187,24 @@ class Template(
 
     @classmethod
     def create(cls, vlist):
+        pool = Pool()
+        Product = pool.get('product.product')
         vlist = [v.copy() for v in vlist]
         for values in vlist:
             values.setdefault('products', None)
-        return super(Template, cls).create(vlist)
+        templates = super(Template, cls).create(vlist)
+        products = sum((t.products for t in templates), ())
+        Product.sync_code(products)
+        return templates
+
+    @classmethod
+    def write(cls, *args):
+        pool = Pool()
+        Product = pool.get('product.product')
+        super().write(*args)
+        templates = sum(args[0:None:2], [])
+        products = sum((t.products for t in templates), ())
+        Product.sync_code(products)
 
     @classmethod
     def search_global(cls, text):
@@ -195,18 +252,39 @@ class Product(
     "Product Variant"
     __name__ = "product.product"
     _order_name = 'rec_name'
-    template = fields.Many2One('product.template', 'Product Template',
-        required=True, ondelete='CASCADE', select=True, states=STATES,
-        depends=DEPENDS)
-    code = fields.Char("Code", size=None, select=True, states=STATES,
-        depends=DEPENDS)
+    template = fields.Many2One(
+        'product.template', "Product Template",
+        required=True, ondelete='CASCADE', select=True,
+        search_context={'default_products': False},
+        help="The product that defines the common properties "
+        "inherited by the variant.")
+    code_readonly = fields.Function(fields.Boolean('Code Readonly'),
+        'get_code_readonly')
+    prefix_code = fields.Function(fields.Char(
+            "Prefix Code",
+            states={
+                'invisible': ~Eval('prefix_code'),
+                }),
+        'on_change_with_prefix_code')
+    suffix_code = fields.Char(
+        "Suffix Code",
+        states={
+            'readonly': Eval('code_readonly', False),
+            },
+        depends=['code_readonly'],
+        help="The unique identifier for the product (aka SKU).")
+    code = fields.Char("Code", readonly=True, select=True,
+        help="A unique identifier for the variant.")
+    identifiers = fields.One2Many(
+        'product.identifier', 'product', "Identifiers",
+        help="Other identifiers associated with the variant.")
     cost_price = fields.MultiValue(fields.Numeric(
             "Cost Price", required=True, digits=price_digits,
-            states=STATES, depends=DEPENDS))
+            help="The amount it costs to purchase or make the variant, "
+            "or carry out the service."))
     cost_prices = fields.One2Many(
         'product.cost_price', 'product', "Cost Prices")
-    description = fields.Text("Description", translate=True, states=STATES,
-        depends=DEPENDS)
+    description = fields.Text("Description", translate=True)
     list_price_uom = fields.Function(fields.Numeric('List Price',
         digits=price_digits), 'get_price_uom')
     cost_price_uom = fields.Function(fields.Numeric('Cost Price',
@@ -223,6 +301,14 @@ class Product(
 
         super(Product, cls).__setup__()
 
+        t = cls.__table__()
+        cls._sql_constraints = [
+            ('code_exclude', Exclude(t, (t.code, Equal),
+                    where=(t.active == Literal(True))
+                    & (t.code != '')),
+                'product.msg_product_code_unique'),
+            ]
+
         for attr in dir(Template):
             tfield = getattr(Template, attr)
             if not isinstance(tfield, fields.Field):
@@ -231,7 +317,17 @@ class Product(
                 continue
             field = getattr(cls, attr, None)
             if not field or isinstance(field, TemplateFunction):
-                setattr(cls, attr, TemplateFunction(copy.deepcopy(tfield)))
+                tfield = copy.deepcopy(tfield)
+                if hasattr(tfield, 'field'):
+                    tfield.field = None
+                invisible_state = ~Eval('template')
+                if 'invisible' in tfield.states:
+                    tfield.states['invisible'] |= invisible_state
+                else:
+                    tfield.states['invisible'] = invisible_state
+                if 'template' not in tfield.depends:
+                    tfield.depends.append('template')
+                setattr(cls, attr, TemplateFunction(tfield))
                 order_method = getattr(cls, 'order_%s' % attr, None)
                 if (not order_method
                         and not isinstance(tfield, (
@@ -244,11 +340,27 @@ class Product(
                     getattr(cls, attr).setter = '_set_template_function'
 
     @classmethod
+    def __register__(cls, module):
+        table = cls.__table__()
+        table_h = cls.__table_handler__(module)
+        fill_suffix_code = (
+            table_h.column_exist('code')
+            and not table_h.column_exist('suffix_code'))
+        super().__register__(module)
+        cursor = Transaction().connection.cursor()
+
+        # Migration from 5.4: split code into prefix/suffix
+        if fill_suffix_code:
+            cursor.execute(*table.update(
+                    [table.suffix_code],
+                    [table.code]))
+
+    @classmethod
     def _set_template_function(cls, products, name, value):
         # Prevent NotImplementedError for One2Many
         pass
 
-    @fields.depends('template')
+    @fields.depends('template', '_parent_template.id')
     def on_change_template(self):
         for name, field in self._fields.items():
             if isinstance(field, TemplateFunction):
@@ -267,6 +379,11 @@ class Product(
             return [r.id for r in value]
         else:
             return value
+
+    @fields.depends('template', '_parent_template.code')
+    def on_change_with_prefix_code(self, name=None):
+        if self.template:
+            return self.template.code
 
     @classmethod
     def multivalue_model(cls, field):
@@ -315,7 +432,9 @@ class Product(
             code_value = lstrip_wildcard(clause[2])
         return [bool_op,
             ('code', clause[1], code_value) + tuple(clause[3:]),
+            ('identifiers.code', clause[1], code_value) + tuple(clause[3:]),
             ('template.name',) + tuple(clause[1:]),
+            ('template.code', clause[1], code_value) + tuple(clause[3:]),
             ]
 
     @staticmethod
@@ -342,6 +461,67 @@ class Product(
             icon = icon or 'tryton-product'
             yield id_, rec_name, icon
 
+    @classmethod
+    def default_code_readonly(cls):
+        pool = Pool()
+        Configuration = pool.get('product.configuration')
+        config = Configuration(1)
+        return bool(config.product_sequence)
+
+    def get_code_readonly(self, name):
+        return self.default_code_readonly()
+
+    @classmethod
+    def _new_suffix_code(cls):
+        pool = Pool()
+        Sequence = pool.get('ir.sequence')
+        Configuration = pool.get('product.configuration')
+        config = Configuration(1)
+        sequence = config.product_sequence
+        if sequence:
+            return Sequence.get_id(sequence.id)
+
+    @classmethod
+    def create(cls, vlist):
+        vlist = [x.copy() for x in vlist]
+        for values in vlist:
+            if not values.get('suffix_code'):
+                values['suffix_code'] = cls._new_suffix_code()
+        products = super().create(vlist)
+        cls.sync_code(products)
+        return products
+
+    @classmethod
+    def write(cls, *args):
+        super().write(*args)
+        products = sum(args[0:None:2], [])
+        cls.sync_code(products)
+
+    @classmethod
+    def copy(cls, products, default=None):
+        if default is None:
+            default = {}
+        else:
+            default = default.copy()
+        default.setdefault('suffix_code', None)
+        default.setdefault('code', None)
+        return super().copy(products, default=default)
+
+    @property
+    def list_price_used(self):
+        return self.template.get_multivalue('list_price')
+
+    @classmethod
+    def sync_code(cls, products):
+        for product in products:
+            code = ''.join(filter(None, [
+                        product.prefix_code, product.suffix_code]))
+            if not code:
+                code = None
+            if code != product.code:
+                product.code = code
+        cls.save(products)
+
 
 class ProductListPrice(ModelSQL, CompanyValueMixin):
     "Product List Price"
@@ -352,8 +532,7 @@ class ProductListPrice(ModelSQL, CompanyValueMixin):
 
     @classmethod
     def __register__(cls, module_name):
-        TableHandler = backend.get('TableHandler')
-        exist = TableHandler.table_exist(cls._table)
+        exist = backend.TableHandler.table_exist(cls._table)
 
         super(ProductListPrice, cls).__register__(module_name)
 
@@ -382,13 +561,13 @@ class ProductCostPriceMethod(ModelSQL, CompanyValueMixin):
     def __register__(cls, module_name):
         pool = Pool()
         ProductCostPrice = pool.get('product.cost_price')
-        TableHandler = backend.get('TableHandler')
         sql_table = cls.__table__()
         cost_price = ProductCostPrice.__table__()
         cursor = Transaction().connection.cursor()
 
-        exist = TableHandler.table_exist(cls._table)
-        cost_price_exist = TableHandler.table_exist(ProductCostPrice._table)
+        exist = backend.TableHandler.table_exist(cls._table)
+        cost_price_exist = backend.TableHandler.table_exist(
+            ProductCostPrice._table)
 
         super(ProductCostPriceMethod, cls).__register__(module_name)
 
@@ -396,7 +575,8 @@ class ProductCostPriceMethod(ModelSQL, CompanyValueMixin):
         if not exist and not cost_price_exist:
             cls._migrate_property([], [], [])
         elif not exist and cost_price_exist:
-            cost_price_table = TableHandler(ProductCostPrice, module_name)
+            cost_price_table = backend.TableHandler(
+                ProductCostPrice, module_name)
             if cost_price_table.column_exist('template'):
                 columns = ['create_uid', 'create_date',
                     'write_uid', 'write_date',
@@ -437,12 +617,11 @@ class ProductCostPrice(ModelSQL, CompanyValueMixin):
     def __register__(cls, module_name):
         pool = Pool()
         Product = pool.get('product.product')
-        TableHandler = backend.get('TableHandler')
         sql_table = cls.__table__()
         product = Product.__table__()
         cursor = Transaction().connection.cursor()
 
-        exist = TableHandler.table_exist(cls._table)
+        exist = backend.TableHandler.table_exist(cls._table)
 
         super(ProductCostPrice, cls).__register__(module_name)
 
@@ -499,3 +678,57 @@ class TemplateCategoryAll(UnionMixin, ModelSQL):
     @classmethod
     def union_models(cls):
         return ['product.template-product.category']
+
+
+class ProductIdentifier(sequence_ordered(), ModelSQL, ModelView):
+    "Product Identifier"
+    __name__ = 'product.identifier'
+    _rec_name = 'code'
+    product = fields.Many2One('product.product', "Product", ondelete='CASCADE',
+        required=True, select=True,
+        help="The product identified by the code.")
+    type = fields.Selection([
+            (None, ''),
+            ('ean', "International Article Number"),
+            ('isan', "International Standard Audiovisual Number"),
+            ('isbn', "International Standard Book Number"),
+            ('isil', "International Standard Identifier for Libraries"),
+            ('isin', "International Securities Identification Number"),
+            ('ismn', "International Standard Music Number"),
+            ], "Type")
+    type_string = type.translated('type')
+    code = fields.Char("Code", required=True)
+
+    @fields.depends('type', 'code')
+    def on_change_with_code(self):
+        if self.type and self.type != 'other':
+            try:
+                module = import_module('stdnum.%s' % self.type)
+                return module.compact(self.code)
+            except ImportError:
+                pass
+            except stdnum.exceptions.ValidationError:
+                pass
+        return self.code
+
+    def pre_validate(self):
+        super().pre_validate()
+        self.check_code()
+
+    @fields.depends('type', 'product', 'code')
+    def check_code(self):
+        if self.type:
+            try:
+                module = import_module('stdnum.%s' % self.type)
+            except ModuleNotFoundError:
+                return
+            if not module.is_valid(self.code):
+                if self.product and self.product.id > 0:
+                    product = self.product.rec_name
+                else:
+                    product = ''
+                raise InvalidIdentifierCode(
+                    gettext('product.msg_invalid_code',
+                        type=self.type_string,
+                        code=self.code,
+                        product=product))
