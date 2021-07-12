@@ -2,6 +2,10 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=utf-8\n"
 
+msgctxt "field:ir.configuration,product_price_decimal:"
+msgid "Product Price Decimal"
+msgstr ""
+
 msgctxt "field:product.category,childs:"
 msgid "Children"
 msgstr "Cabang"
@@ -14,11 +18,22 @@ msgctxt "field:product.category,parent:"
 msgid "Parent"
 msgstr "Induk"
 
+#, fuzzy
+msgctxt "field:product.category,templates:"
+msgid "Products"
+msgstr "Produk"
+
 msgctxt "field:product.configuration,default_cost_price_method:"
 msgid "Default Cost Method"
 msgstr ""
 
+#, fuzzy
 msgctxt "field:product.configuration,product_sequence:"
+msgid "Variant Sequence"
+msgstr "Urutan Produk"
+
+#, fuzzy
+msgctxt "field:product.configuration,template_sequence:"
 msgid "Product Sequence"
 msgstr "Urutan Produk"
 
@@ -49,7 +64,7 @@ msgstr ""
 
 msgctxt "field:product.cost_price_method,template:"
 msgid "Template"
-msgstr ""
+msgstr "Templat"
 
 msgctxt "field:product.identifier,code:"
 msgid "Code"
@@ -73,15 +88,15 @@ msgstr ""
 
 msgctxt "field:product.list_price,template:"
 msgid "Template"
-msgstr ""
+msgstr "Templat"
 
 msgctxt "field:product.product,categories:"
 msgid "Categories"
-msgstr ""
+msgstr "Kategori"
 
 msgctxt "field:product.product,categories_all:"
 msgid "Categories"
-msgstr ""
+msgstr "Kategori"
 
 msgctxt "field:product.product,code:"
 msgid "Code"
@@ -121,6 +136,10 @@ msgstr ""
 
 msgctxt "field:product.product,default_uom_category:"
 msgid "Default UOM Category"
+msgstr ""
+
+msgctxt "field:product.product,default_uom_digits:"
+msgid "Default Unit Digits"
 msgstr ""
 
 msgctxt "field:product.product,description:"
@@ -171,10 +190,13 @@ msgctxt "field:product.template,categories_all:"
 msgid "Categories"
 msgstr ""
 
-#, fuzzy
 msgctxt "field:product.template,code:"
 msgid "Code"
 msgstr "Kode"
+
+msgctxt "field:product.template,code_readonly:"
+msgid "Code Readonly"
+msgstr ""
 
 msgctxt "field:product.template,consumable:"
 msgid "Consumable"
@@ -198,6 +220,10 @@ msgstr ""
 
 msgctxt "field:product.template,default_uom_category:"
 msgid "Default UOM Category"
+msgstr ""
+
+msgctxt "field:product.template,default_uom_digits:"
+msgid "Default Unit Digits"
 msgstr ""
 
 msgctxt "field:product.template,list_price:"
@@ -226,7 +252,7 @@ msgstr "Kategori"
 
 msgctxt "field:product.template-product.category,template:"
 msgid "Template"
-msgstr ""
+msgstr "Templat"
 
 msgctxt "field:product.template-product.category.all,category:"
 msgid "Category"
@@ -234,7 +260,7 @@ msgstr "Kategori"
 
 msgctxt "field:product.template-product.category.all,template:"
 msgid "Template"
-msgstr ""
+msgstr "Templat"
 
 msgctxt "field:product.uom,category:"
 msgid "Category"
@@ -268,7 +294,6 @@ msgctxt "field:product.uom.category,name:"
 msgid "Name"
 msgstr "Nama"
 
-#, fuzzy
 msgctxt "field:product.uom.category,uoms:"
 msgid "Units of Measure"
 msgstr "Satuan Ukuran"
@@ -286,7 +311,11 @@ msgid "The default cost price method for new products."
 msgstr ""
 
 msgctxt "help:product.configuration,product_sequence:"
-msgid "Used to generate the product code."
+msgid "Used to generate the last part of the product code."
+msgstr ""
+
+msgctxt "help:product.configuration,template_sequence:"
+msgid "Used to generate the first part of the product code."
 msgstr ""
 
 msgctxt ""
@@ -413,13 +442,19 @@ msgctxt "model:ir.action,name:act_category_list"
 msgid "Categories"
 msgstr ""
 
+#, fuzzy
+msgctxt "model:ir.action,name:act_category_product"
+msgid "Add products"
+msgstr "Produk"
+
 msgctxt "model:ir.action,name:act_category_tree"
 msgid "Categories"
 msgstr ""
 
+#, fuzzy
 msgctxt "model:ir.action,name:act_product_configuration_form"
-msgid "Product Configuration"
-msgstr "Konfigurasi Produk"
+msgid "Configuration"
+msgstr "Konfigurasi"
 
 msgctxt "model:ir.action,name:act_product_form"
 msgid "Variants"
@@ -437,9 +472,10 @@ msgctxt "model:ir.action,name:act_template_form"
 msgid "Products"
 msgstr ""
 
+#, fuzzy
 msgctxt "model:ir.action,name:act_uom_category_form"
-msgid "Categories of Unit of Measure"
-msgstr ""
+msgid "Categories"
+msgstr "Kategori"
 
 msgctxt "model:ir.action,name:act_uom_form"
 msgid "Units of Measure"
@@ -479,17 +515,27 @@ msgctxt "model:ir.message,text:msg_uom_no_zero_factor_rate"
 msgid "Rate and factor can not be both equal to zero."
 msgstr ""
 
+#, fuzzy
+msgctxt "model:ir.model.button,string:category_add_products_button"
+msgid "Add products"
+msgstr "Produk"
+
 msgctxt "model:ir.sequence.type,name:sequence_type_product"
+msgid "Variant"
+msgstr ""
+
+#, fuzzy
+msgctxt "model:ir.sequence.type,name:sequence_type_template"
 msgid "Product"
 msgstr "Produk"
 
 msgctxt "model:ir.ui.menu,name:menu_category_list"
 msgid "Categories"
-msgstr ""
+msgstr "Kategori-kategori"
 
 msgctxt "model:ir.ui.menu,name:menu_category_tree"
 msgid "Categories"
-msgstr ""
+msgstr "Kategori-kategori"
 
 msgctxt "model:ir.ui.menu,name:menu_configuration"
 msgid "Configuration"
@@ -503,9 +549,14 @@ msgctxt "model:ir.ui.menu,name:menu_product"
 msgid "Variants"
 msgstr ""
 
+#, fuzzy
 msgctxt "model:ir.ui.menu,name:menu_product_configuration"
-msgid "Product Configuration"
-msgstr "Konfigurasi Produk"
+msgid "Configuration"
+msgstr "Konfigurasi"
+
+msgctxt "model:ir.ui.menu,name:menu_reporting"
+msgid "Reporting"
+msgstr ""
 
 msgctxt "model:ir.ui.menu,name:menu_template"
 msgid "Products"
@@ -563,7 +614,6 @@ msgctxt "model:product.template-product.category.all,name:"
 msgid "Template - Category All"
 msgstr ""
 
-#, fuzzy
 msgctxt "model:product.uom,name:"
 msgid "Unit of Measure"
 msgstr "Satuan Ukuran"
@@ -824,10 +874,9 @@ msgctxt "model:product.uom,symbol:uom_yard"
 msgid "yd"
 msgstr ""
 
-#, fuzzy
 msgctxt "model:product.uom.category,name:"
 msgid "Unit of Measure Category"
-msgstr "Satuan Ukuran"
+msgstr "Kategori Satuan Ukuran"
 
 msgctxt "model:product.uom.category,name:uom_cat_length"
 msgid "Length"
@@ -924,6 +973,11 @@ msgstr "Jasa"
 msgctxt "view:product.category:"
 msgid "Children"
 msgstr "Cabang"
+
+#, fuzzy
+msgctxt "view:product.configuration:"
+msgid "Sequences"
+msgstr "Urutan Produk"
 
 msgctxt "view:product.template:"
 msgid "General"

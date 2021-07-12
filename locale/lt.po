@@ -2,6 +2,11 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=utf-8\n"
 
+#, fuzzy
+msgctxt "field:ir.configuration,product_price_decimal:"
+msgid "Product Price Decimal"
+msgstr "Prekės savikaina"
+
 msgctxt "field:product.category,childs:"
 msgid "Children"
 msgstr "Dukterinės"
@@ -14,12 +19,22 @@ msgctxt "field:product.category,parent:"
 msgid "Parent"
 msgstr "Motininė"
 
+#, fuzzy
+msgctxt "field:product.category,templates:"
+msgid "Products"
+msgstr "Prekės"
+
 msgctxt "field:product.configuration,default_cost_price_method:"
 msgid "Default Cost Method"
 msgstr "Numatytasis savikainos metodas"
 
 #, fuzzy
 msgctxt "field:product.configuration,product_sequence:"
+msgid "Variant Sequence"
+msgstr "Numeruotė"
+
+#, fuzzy
+msgctxt "field:product.configuration,template_sequence:"
 msgid "Product Sequence"
 msgstr "Numeruotė"
 
@@ -124,6 +139,10 @@ msgctxt "field:product.product,default_uom_category:"
 msgid "Default UOM Category"
 msgstr "Numatytojo mato vieneto kategorija"
 
+msgctxt "field:product.product,default_uom_digits:"
+msgid "Default Unit Digits"
+msgstr ""
+
 msgctxt "field:product.product,description:"
 msgid "Description"
 msgstr "Aprašymas"
@@ -177,6 +196,10 @@ msgctxt "field:product.template,code:"
 msgid "Code"
 msgstr "Kodas"
 
+msgctxt "field:product.template,code_readonly:"
+msgid "Code Readonly"
+msgstr ""
+
 msgctxt "field:product.template,consumable:"
 msgid "Consumable"
 msgstr "Vartojamoji"
@@ -200,6 +223,10 @@ msgstr "Numatytasis mato vienetas"
 msgctxt "field:product.template,default_uom_category:"
 msgid "Default UOM Category"
 msgstr "Numatytojo mato vieneto kategorija"
+
+msgctxt "field:product.template,default_uom_digits:"
+msgid "Default Unit Digits"
+msgstr ""
 
 msgctxt "field:product.template,list_price:"
 msgid "List Price"
@@ -287,7 +314,11 @@ msgid "The default cost price method for new products."
 msgstr ""
 
 msgctxt "help:product.configuration,product_sequence:"
-msgid "Used to generate the product code."
+msgid "Used to generate the last part of the product code."
+msgstr ""
+
+msgctxt "help:product.configuration,template_sequence:"
+msgid "Used to generate the first part of the product code."
 msgstr ""
 
 msgctxt ""
@@ -422,13 +453,19 @@ msgctxt "model:ir.action,name:act_category_list"
 msgid "Categories"
 msgstr "Kategorijos"
 
+#, fuzzy
+msgctxt "model:ir.action,name:act_category_product"
+msgid "Add products"
+msgstr "Prekės"
+
 msgctxt "model:ir.action,name:act_category_tree"
 msgid "Categories"
 msgstr "Kategorijos"
 
+#, fuzzy
 msgctxt "model:ir.action,name:act_product_configuration_form"
-msgid "Product Configuration"
-msgstr "Prekės nuostatos"
+msgid "Configuration"
+msgstr "Nuostatos"
 
 msgctxt "model:ir.action,name:act_product_form"
 msgid "Variants"
@@ -446,9 +483,10 @@ msgctxt "model:ir.action,name:act_template_form"
 msgid "Products"
 msgstr "Prekės"
 
+#, fuzzy
 msgctxt "model:ir.action,name:act_uom_category_form"
-msgid "Categories of Unit of Measure"
-msgstr "Mato vieneto kategorijos"
+msgid "Categories"
+msgstr "Kategorijos"
 
 msgctxt "model:ir.action,name:act_uom_form"
 msgid "Units of Measure"
@@ -489,7 +527,17 @@ msgid "Rate and factor can not be both equal to zero."
 msgstr ""
 
 #, fuzzy
+msgctxt "model:ir.model.button,string:category_add_products_button"
+msgid "Add products"
+msgstr "Prekės"
+
+#, fuzzy
 msgctxt "model:ir.sequence.type,name:sequence_type_product"
+msgid "Variant"
+msgstr "Variantai"
+
+#, fuzzy
+msgctxt "model:ir.sequence.type,name:sequence_type_template"
 msgid "Product"
 msgstr "Prekė"
 
@@ -513,9 +561,14 @@ msgctxt "model:ir.ui.menu,name:menu_product"
 msgid "Variants"
 msgstr "Variantai"
 
+#, fuzzy
 msgctxt "model:ir.ui.menu,name:menu_product_configuration"
-msgid "Product Configuration"
-msgstr "Prekės nuostatos"
+msgid "Configuration"
+msgstr "Nuostatos"
+
+msgctxt "model:ir.ui.menu,name:menu_reporting"
+msgid "Reporting"
+msgstr ""
 
 msgctxt "model:ir.ui.menu,name:menu_template"
 msgid "Products"
@@ -869,7 +922,7 @@ msgstr "Prekių valdymas"
 
 msgctxt "selection:product.identifier,type:"
 msgid "International Article Number"
-msgstr "Tarptautinis  artikulas"
+msgstr "Tarptautinis artikulas"
 
 msgctxt "selection:product.identifier,type:"
 msgid "International Securities Identification Number"
@@ -934,6 +987,11 @@ msgstr "Paslaugos"
 msgctxt "view:product.category:"
 msgid "Children"
 msgstr "Dukterinė"
+
+#, fuzzy
+msgctxt "view:product.configuration:"
+msgid "Sequences"
+msgstr "Numeruotė"
 
 msgctxt "view:product.template:"
 msgid "General"

@@ -14,16 +14,16 @@ from trytond.i18n import gettext
 from trytond.model import (
     ModelView, ModelSQL, Model, UnionMixin, DeactivableMixin, sequence_ordered,
     Exclude, fields)
-from trytond.pyson import Eval
+from trytond.pyson import Eval, If
 from trytond.transaction import Transaction
 from trytond.pool import Pool
 from trytond import backend
-from trytond.config import config
 from trytond.tools import lstrip_wildcard
 from trytond.tools.multivalue import migrate_property
 from trytond.modules.company.model import (
     CompanyMultiValueMixin, CompanyValueMixin)
 from .exceptions import InvalidIdentifierCode
+from .ir import price_decimal
 
 
 __all__ = ['price_digits', 'round_price', 'TemplateFunction']
@@ -39,7 +39,7 @@ COST_PRICE_METHODS = [
     ('average', 'Average'),
     ]
 
-price_digits = (16, config.getint('product', 'price_decimal', default=4))
+price_digits = (16, price_decimal)
 
 
 def round_price(value, rounding=None):
@@ -52,9 +52,17 @@ class Template(
         DeactivableMixin, ModelSQL, ModelView, CompanyMultiValueMixin):
     "Product Template"
     __name__ = "product.template"
+    _order_name = 'rec_name'
     name = fields.Char(
         "Name", size=None, required=True, translate=True, select=True)
-    code = fields.Char("Code", select=True)
+    code_readonly = fields.Function(
+        fields.Boolean("Code Readonly"), 'get_code_readonly')
+    code = fields.Char(
+        "Code", select=True,
+        states={
+            'readonly': Eval('code_readonly', False),
+            },
+        depends=['code_readonly'])
     type = fields.Selection(TYPES, "Type", required=True)
     consumable = fields.Boolean('Consumable',
         states={
@@ -86,6 +94,8 @@ class Template(
         fields.Many2One('product.uom.category', 'Default UOM Category'),
         'on_change_with_default_uom_category',
         searcher='search_default_uom_category')
+    default_uom_digits = fields.Function(fields.Integer("Default Unit Digits"),
+        'on_change_with_default_uom_digits')
     categories = fields.Many2Many(
         'product.template-product.category', 'template', 'category',
         "Categories",
@@ -96,6 +106,10 @@ class Template(
         'template', 'category', "Categories", readonly=True)
     products = fields.One2Many(
         'product.product', 'template', "Variants",
+        domain=[
+            If(~Eval('active'), ('active', '=', False), ()),
+            ],
+        depends=['active'],
         help="The different variants the product comes in.")
 
     @classmethod
@@ -111,6 +125,11 @@ class Template(
                 cls._table)
 
     @classmethod
+    def __setup__(cls):
+        super().__setup__()
+        cls._order.insert(0, ('rec_name', 'ASC'))
+
+    @classmethod
     def multivalue_model(cls, field):
         pool = Pool()
         if field == 'list_price':
@@ -119,9 +138,14 @@ class Template(
             return pool.get('product.cost_price_method')
         return super(Template, cls).multivalue_model(field)
 
+    @classmethod
+    def order_rec_name(cls, tables):
+        table, _ = tables[None]
+        return [table.code, table.name]
+
     def get_rec_name(self, name):
         if self.code:
-            return '[' + self.code + ']' + self.name
+            return '[' + self.code + '] ' + self.name
         else:
             return self.name
 
@@ -170,6 +194,16 @@ class Template(
             return []
         return [{}]
 
+    @classmethod
+    def default_code_readonly(cls):
+        pool = Pool()
+        Configuration = pool.get('product.configuration')
+        config = Configuration(1)
+        return bool(config.template_sequence)
+
+    def get_code_readonly(self, name):
+        return self.default_code_readonly()
+
     @fields.depends('type', 'cost_price_method')
     def on_change_type(self):
         if self.type == 'service':
@@ -185,6 +219,20 @@ class Template(
         return [('default_uom.category' + clause[0].lstrip(name),)
             + tuple(clause[1:])]
 
+    @fields.depends('default_uom')
+    def on_change_with_default_uom_digits(self, name=None):
+        if self.default_uom:
+            return self.default_uom.digits
+
+    @classmethod
+    def _new_code(cls):
+        pool = Pool()
+        Configuration = pool.get('product.configuration')
+        config = Configuration(1)
+        sequence = config.template_sequence
+        if sequence:
+            return sequence.get()
+
     @classmethod
     def create(cls, vlist):
         pool = Pool()
@@ -192,6 +240,8 @@ class Template(
         vlist = [v.copy() for v in vlist]
         for values in vlist:
             values.setdefault('products', None)
+            if not values.get('code'):
+                values['code'] = cls._new_code()
         templates = super(Template, cls).create(vlist)
         products = sum((t.products for t in templates), ())
         Product.sync_code(products)
@@ -205,6 +255,15 @@ class Template(
         templates = sum(args[0:None:2], [])
         products = sum((t.products for t in templates), ())
         Product.sync_code(products)
+
+    @classmethod
+    def copy(cls, templates, default=None):
+        if default is None:
+            default = {}
+        else:
+            default = default.copy()
+        default.setdefault('code', None)
+        return super().copy(templates, default=default)
 
     @classmethod
     def search_global(cls, text):
@@ -240,11 +299,17 @@ class TemplateFunction(fields.Function):
                 tables['template'] = {
                     None: (template, product.template == template.id),
                     }
-            else:
-                template = tables['template']
             return getattr(Template, name).convert_order(
                 name, tables['template'], Template)
         return order
+
+    def definition(self, model, language):
+        pool = Pool()
+        Template = pool.get('product.template')
+        definition = super().definition(model, language)
+        definition['searchable'] = self._field.definition(
+            Template, language)['searchable']
+        return definition
 
 
 class Product(
@@ -256,6 +321,10 @@ class Product(
         'product.template', "Product Template",
         required=True, ondelete='CASCADE', select=True,
         search_context={'default_products': False},
+        domain=[
+            If(Eval('active'), ('active', '=', True), ()),
+            ],
+        depends=['active'],
         help="The product that defines the common properties "
         "inherited by the variant.")
     code_readonly = fields.Function(fields.Boolean('Code Readonly'),
@@ -300,6 +369,8 @@ class Product(
         cls._no_template_field.update(['products'])
 
         super(Product, cls).__setup__()
+        cls.__access__.add('template')
+        cls._order.insert(0, ('rec_name', 'ASC'))
 
         t = cls.__table__()
         cls._sql_constraints = [
@@ -474,12 +545,11 @@ class Product(
     @classmethod
     def _new_suffix_code(cls):
         pool = Pool()
-        Sequence = pool.get('ir.sequence')
         Configuration = pool.get('product.configuration')
         config = Configuration(1)
         sequence = config.product_sequence
         if sequence:
-            return Sequence.get_id(sequence.id)
+            return sequence.get()
 
     @classmethod
     def create(cls, vlist):
@@ -527,7 +597,11 @@ class ProductListPrice(ModelSQL, CompanyValueMixin):
     "Product List Price"
     __name__ = 'product.list_price'
     template = fields.Many2One(
-        'product.template', "Template", ondelete='CASCADE', select=True)
+        'product.template', "Template", ondelete='CASCADE', select=True,
+        context={
+            'company': Eval('company', -1),
+            },
+        depends=['company'])
     list_price = fields.Numeric("List Price", digits=price_digits)
 
     @classmethod
@@ -553,7 +627,11 @@ class ProductCostPriceMethod(ModelSQL, CompanyValueMixin):
     "Product Cost Price Method"
     __name__ = 'product.cost_price_method'
     template = fields.Many2One(
-        'product.template', "Template", ondelete='CASCADE', select=True)
+        'product.template', "Template", ondelete='CASCADE', select=True,
+        context={
+            'company': Eval('company', -1),
+            },
+        depends=['company'])
     cost_price_method = fields.Selection(
         'get_cost_price_methods', "Cost Price Method")
 
@@ -609,7 +687,11 @@ class ProductCostPrice(ModelSQL, CompanyValueMixin):
     "Product Cost Price"
     __name__ = 'product.cost_price'
     product = fields.Many2One(
-        'product.product', "Product", ondelete='CASCADE', select=True)
+        'product.product', "Product", ondelete='CASCADE', select=True,
+        context={
+            'company': Eval('company', -1),
+            },
+        depends=['company'])
     cost_price = fields.Numeric(
         "Cost Price", digits=price_digits)
 
@@ -698,6 +780,11 @@ class ProductIdentifier(sequence_ordered(), ModelSQL, ModelView):
             ], "Type")
     type_string = type.translated('type')
     code = fields.Char("Code", required=True)
+
+    @classmethod
+    def __setup__(cls):
+        super().__setup__()
+        cls.__access__.add('product')
 
     @fields.depends('type', 'code')
     def on_change_with_code(self):

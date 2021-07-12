@@ -2,6 +2,11 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=utf-8\n"
 
+#, fuzzy
+msgctxt "field:ir.configuration,product_price_decimal:"
+msgid "Product Price Decimal"
+msgstr "Nabavna cena izdelka"
+
 msgctxt "field:product.category,childs:"
 msgid "Children"
 msgstr "Podkategorije"
@@ -14,12 +19,22 @@ msgctxt "field:product.category,parent:"
 msgid "Parent"
 msgstr "Matična kategorija"
 
+#, fuzzy
+msgctxt "field:product.category,templates:"
+msgid "Products"
+msgstr "Products"
+
 msgctxt "field:product.configuration,default_cost_price_method:"
 msgid "Default Cost Method"
 msgstr "Privzeti obračun"
 
 #, fuzzy
 msgctxt "field:product.configuration,product_sequence:"
+msgid "Variant Sequence"
+msgstr "Predloga"
+
+#, fuzzy
+msgctxt "field:product.configuration,template_sequence:"
 msgid "Product Sequence"
 msgstr "Predloga"
 
@@ -131,6 +146,10 @@ msgctxt "field:product.product,default_uom_category:"
 msgid "Default UOM Category"
 msgstr "Privzeta kategorija ME"
 
+msgctxt "field:product.product,default_uom_digits:"
+msgid "Default Unit Digits"
+msgstr ""
+
 msgctxt "field:product.product,description:"
 msgid "Description"
 msgstr "Opis"
@@ -185,6 +204,10 @@ msgctxt "field:product.template,code:"
 msgid "Code"
 msgstr "Šifra"
 
+msgctxt "field:product.template,code_readonly:"
+msgid "Code Readonly"
+msgstr ""
+
 msgctxt "field:product.template,consumable:"
 msgid "Consumable"
 msgstr "Potrošni material"
@@ -208,6 +231,10 @@ msgstr "Privzeta ME"
 msgctxt "field:product.template,default_uom_category:"
 msgid "Default UOM Category"
 msgstr "Privzeta kategorija ME"
+
+msgctxt "field:product.template,default_uom_digits:"
+msgid "Default Unit Digits"
+msgstr ""
 
 msgctxt "field:product.template,list_price:"
 msgid "List Price"
@@ -297,7 +324,11 @@ msgid "The default cost price method for new products."
 msgstr ""
 
 msgctxt "help:product.configuration,product_sequence:"
-msgid "Used to generate the product code."
+msgid "Used to generate the last part of the product code."
+msgstr ""
+
+msgctxt "help:product.configuration,template_sequence:"
+msgid "Used to generate the first part of the product code."
 msgstr ""
 
 msgctxt ""
@@ -431,14 +462,19 @@ msgid "Categories"
 msgstr "Categories"
 
 #, fuzzy
+msgctxt "model:ir.action,name:act_category_product"
+msgid "Add products"
+msgstr "Products"
+
+#, fuzzy
 msgctxt "model:ir.action,name:act_category_tree"
 msgid "Categories"
 msgstr "Categories"
 
 #, fuzzy
 msgctxt "model:ir.action,name:act_product_configuration_form"
-msgid "Product Configuration"
-msgstr "Product Configuration"
+msgid "Configuration"
+msgstr "Configuration"
 
 #, fuzzy
 msgctxt "model:ir.action,name:act_product_form"
@@ -462,8 +498,8 @@ msgstr "Products"
 
 #, fuzzy
 msgctxt "model:ir.action,name:act_uom_category_form"
-msgid "Categories of Unit of Measure"
-msgstr "Categories of Unit of Measure"
+msgid "Categories"
+msgstr "Kategorije"
 
 #, fuzzy
 msgctxt "model:ir.action,name:act_uom_form"
@@ -505,7 +541,17 @@ msgid "Rate and factor can not be both equal to zero."
 msgstr ""
 
 #, fuzzy
+msgctxt "model:ir.model.button,string:category_add_products_button"
+msgid "Add products"
+msgstr "Products"
+
+#, fuzzy
 msgctxt "model:ir.sequence.type,name:sequence_type_product"
+msgid "Variant"
+msgstr "Različice"
+
+#, fuzzy
+msgctxt "model:ir.sequence.type,name:sequence_type_template"
 msgid "Product"
 msgstr "Izdelek"
 
@@ -536,8 +582,12 @@ msgstr "Variants"
 
 #, fuzzy
 msgctxt "model:ir.ui.menu,name:menu_product_configuration"
-msgid "Product Configuration"
-msgstr "Product Configuration"
+msgid "Configuration"
+msgstr "Configuration"
+
+msgctxt "model:ir.ui.menu,name:menu_reporting"
+msgid "Reporting"
+msgstr ""
 
 #, fuzzy
 msgctxt "model:ir.ui.menu,name:menu_template"
@@ -1001,6 +1051,11 @@ msgstr "Storitev"
 msgctxt "view:product.category:"
 msgid "Children"
 msgstr "Podkategorije"
+
+#, fuzzy
+msgctxt "view:product.configuration:"
+msgid "Sequences"
+msgstr "Predloga"
 
 msgctxt "view:product.template:"
 msgid "General"
