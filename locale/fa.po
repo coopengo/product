@@ -2,6 +2,11 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=utf-8\n"
 
+#, fuzzy
+msgctxt "field:ir.configuration,product_price_decimal:"
+msgid "Product Price Decimal"
+msgstr "ارزش بها محصول"
+
 msgctxt "field:product.category,childs:"
 msgid "Children"
 msgstr "زیر مجموعه"
@@ -14,12 +19,22 @@ msgctxt "field:product.category,parent:"
 msgid "Parent"
 msgstr "منبع"
 
+#, fuzzy
+msgctxt "field:product.category,templates:"
+msgid "Products"
+msgstr "محصولات"
+
 msgctxt "field:product.configuration,default_cost_price_method:"
 msgid "Default Cost Method"
 msgstr "روش هزینه پیش فرض"
 
 #, fuzzy
 msgctxt "field:product.configuration,product_sequence:"
+msgid "Variant Sequence"
+msgstr "الگوی محصول"
+
+#, fuzzy
+msgctxt "field:product.configuration,template_sequence:"
 msgid "Product Sequence"
 msgstr "الگوی محصول"
 
@@ -127,6 +142,10 @@ msgctxt "field:product.product,default_uom_category:"
 msgid "Default UOM Category"
 msgstr "زیرمجموعه واحد اندازه گیری پیش فرض"
 
+msgctxt "field:product.product,default_uom_digits:"
+msgid "Default Unit Digits"
+msgstr ""
+
 msgctxt "field:product.product,description:"
 msgid "Description"
 msgstr "شرح"
@@ -180,6 +199,10 @@ msgctxt "field:product.template,code:"
 msgid "Code"
 msgstr "کد"
 
+msgctxt "field:product.template,code_readonly:"
+msgid "Code Readonly"
+msgstr ""
+
 msgctxt "field:product.template,consumable:"
 msgid "Consumable"
 msgstr "مصرفی"
@@ -203,6 +226,10 @@ msgstr "واحد اندازه گیری پیش فرض"
 msgctxt "field:product.template,default_uom_category:"
 msgid "Default UOM Category"
 msgstr "زیرمجموعه واحد اندازه گیری پیش فرض"
+
+msgctxt "field:product.template,default_uom_digits:"
+msgid "Default Unit Digits"
+msgstr ""
 
 msgctxt "field:product.template,list_price:"
 msgid "List Price"
@@ -290,7 +317,11 @@ msgid "The default cost price method for new products."
 msgstr ""
 
 msgctxt "help:product.configuration,product_sequence:"
-msgid "Used to generate the product code."
+msgid "Used to generate the last part of the product code."
+msgstr ""
+
+msgctxt "help:product.configuration,template_sequence:"
+msgid "Used to generate the first part of the product code."
 msgstr ""
 
 msgctxt ""
@@ -422,13 +453,19 @@ msgctxt "model:ir.action,name:act_category_list"
 msgid "Categories"
 msgstr "دسته بندی ها"
 
+#, fuzzy
+msgctxt "model:ir.action,name:act_category_product"
+msgid "Add products"
+msgstr "محصولات"
+
 msgctxt "model:ir.action,name:act_category_tree"
 msgid "Categories"
 msgstr "دسته بندی ها"
 
+#, fuzzy
 msgctxt "model:ir.action,name:act_product_configuration_form"
-msgid "Product Configuration"
-msgstr "پیکربندی محصول"
+msgid "Configuration"
+msgstr "پیکربندی"
 
 msgctxt "model:ir.action,name:act_product_form"
 msgid "Variants"
@@ -446,9 +483,10 @@ msgctxt "model:ir.action,name:act_template_form"
 msgid "Products"
 msgstr "محصولات"
 
+#, fuzzy
 msgctxt "model:ir.action,name:act_uom_category_form"
-msgid "Categories of Unit of Measure"
-msgstr "زیرمجموعه های واحد اندازه گیری"
+msgid "Categories"
+msgstr "دسته بندی ها"
 
 msgctxt "model:ir.action,name:act_uom_form"
 msgid "Units of Measure"
@@ -489,7 +527,17 @@ msgid "Rate and factor can not be both equal to zero."
 msgstr ""
 
 #, fuzzy
+msgctxt "model:ir.model.button,string:category_add_products_button"
+msgid "Add products"
+msgstr "محصولات"
+
+#, fuzzy
 msgctxt "model:ir.sequence.type,name:sequence_type_product"
+msgid "Variant"
+msgstr "متغیرها"
+
+#, fuzzy
+msgctxt "model:ir.sequence.type,name:sequence_type_template"
 msgid "Product"
 msgstr "محصول"
 
@@ -513,9 +561,14 @@ msgctxt "model:ir.ui.menu,name:menu_product"
 msgid "Variants"
 msgstr "متغیرها"
 
+#, fuzzy
 msgctxt "model:ir.ui.menu,name:menu_product_configuration"
-msgid "Product Configuration"
-msgstr "پیکربندی محصول"
+msgid "Configuration"
+msgstr "پیکربندی"
+
+msgctxt "model:ir.ui.menu,name:menu_reporting"
+msgid "Reporting"
+msgstr ""
 
 msgctxt "model:ir.ui.menu,name:menu_template"
 msgid "Products"
@@ -935,6 +988,11 @@ msgstr "خدمات"
 msgctxt "view:product.category:"
 msgid "Children"
 msgstr "زیر مجموعه"
+
+#, fuzzy
+msgctxt "view:product.configuration:"
+msgid "Sequences"
+msgstr "الگوی محصول"
 
 msgctxt "view:product.template:"
 msgid "General"

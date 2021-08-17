@@ -2,6 +2,10 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=utf-8\n"
 
+msgctxt "field:ir.configuration,product_price_decimal:"
+msgid "Product Price Decimal"
+msgstr "Décimal de prix de revient de produit"
+
 msgctxt "field:product.category,childs:"
 msgid "Children"
 msgstr "Enfants"
@@ -14,11 +18,19 @@ msgctxt "field:product.category,parent:"
 msgid "Parent"
 msgstr "Parent"
 
+msgctxt "field:product.category,templates:"
+msgid "Products"
+msgstr "Produits"
+
 msgctxt "field:product.configuration,default_cost_price_method:"
 msgid "Default Cost Method"
 msgstr "Méthode de coût par défaut"
 
 msgctxt "field:product.configuration,product_sequence:"
+msgid "Variant Sequence"
+msgstr "Séquence de variantes"
+
+msgctxt "field:product.configuration,template_sequence:"
 msgid "Product Sequence"
 msgstr "Séquence de produit"
 
@@ -123,6 +135,10 @@ msgctxt "field:product.product,default_uom_category:"
 msgid "Default UOM Category"
 msgstr "Catégorie d'UDM par défaut"
 
+msgctxt "field:product.product,default_uom_digits:"
+msgid "Default Unit Digits"
+msgstr "Décimales d'unité par défaut"
+
 msgctxt "field:product.product,description:"
 msgid "Description"
 msgstr "Description"
@@ -175,6 +191,10 @@ msgctxt "field:product.template,code:"
 msgid "Code"
 msgstr "Code"
 
+msgctxt "field:product.template,code_readonly:"
+msgid "Code Readonly"
+msgstr "Code en lecture seule"
+
 msgctxt "field:product.template,consumable:"
 msgid "Consumable"
 msgstr "Consommable"
@@ -198,6 +218,10 @@ msgstr "UDM par défaut"
 msgctxt "field:product.template,default_uom_category:"
 msgid "Default UOM Category"
 msgstr "Catégorie d'UDM par défaut"
+
+msgctxt "field:product.template,default_uom_digits:"
+msgid "Default Unit Digits"
+msgstr "Décimales d'unité par défaut"
 
 msgctxt "field:product.template,list_price:"
 msgid "List Price"
@@ -284,8 +308,12 @@ msgid "The default cost price method for new products."
 msgstr "La méthode du prix de revient par défaut pour les nouveaux produits."
 
 msgctxt "help:product.configuration,product_sequence:"
-msgid "Used to generate the product code."
-msgstr "Utilisé pour générer le code produit."
+msgid "Used to generate the last part of the product code."
+msgstr "Utilisé pour générer la dernière partie du code produit."
+
+msgctxt "help:product.configuration,template_sequence:"
+msgid "Used to generate the first part of the product code."
+msgstr "Utilisé pour générer la première partie du code produit."
 
 msgctxt ""
 "help:product.configuration.default_cost_price_method,default_cost_price_method:"
@@ -419,7 +447,7 @@ msgid ""
 "The coefficient for the formula:\n"
 "1 (base unit) = coef (this unit)"
 msgstr ""
-"Le coefficient pour la formule:\n"
+"Le coefficient pour la formule :\n"
 "1 (unité de base) = coef (cette unité)"
 
 msgctxt "help:product.uom,rounding:"
@@ -434,13 +462,17 @@ msgctxt "model:ir.action,name:act_category_list"
 msgid "Categories"
 msgstr "Catégories"
 
+msgctxt "model:ir.action,name:act_category_product"
+msgid "Add products"
+msgstr "Ajouter des produits"
+
 msgctxt "model:ir.action,name:act_category_tree"
 msgid "Categories"
 msgstr "Catégories"
 
 msgctxt "model:ir.action,name:act_product_configuration_form"
-msgid "Product Configuration"
-msgstr "Configuration produit"
+msgid "Configuration"
+msgstr "Configuration"
 
 msgctxt "model:ir.action,name:act_product_form"
 msgid "Variants"
@@ -459,8 +491,8 @@ msgid "Products"
 msgstr "Produits"
 
 msgctxt "model:ir.action,name:act_uom_category_form"
-msgid "Categories of Unit of Measure"
-msgstr "Catégories d'unité de mesure"
+msgid "Categories"
+msgstr "Catégories"
 
 msgctxt "model:ir.action,name:act_uom_form"
 msgid "Units of Measure"
@@ -502,7 +534,15 @@ msgctxt "model:ir.message,text:msg_uom_no_zero_factor_rate"
 msgid "Rate and factor can not be both equal to zero."
 msgstr "Le taux et le facteur ne peuvent pas être tous deux égaux à zéro."
 
+msgctxt "model:ir.model.button,string:category_add_products_button"
+msgid "Add products"
+msgstr "Ajouter des produits"
+
 msgctxt "model:ir.sequence.type,name:sequence_type_product"
+msgid "Variant"
+msgstr "Variante"
+
+msgctxt "model:ir.sequence.type,name:sequence_type_template"
 msgid "Product"
 msgstr "Produit"
 
@@ -527,8 +567,12 @@ msgid "Variants"
 msgstr "Variantes"
 
 msgctxt "model:ir.ui.menu,name:menu_product_configuration"
-msgid "Product Configuration"
-msgstr "Configuration produit"
+msgid "Configuration"
+msgstr "Configuration"
+
+msgctxt "model:ir.ui.menu,name:menu_reporting"
+msgid "Reporting"
+msgstr "Rapports"
 
 msgctxt "model:ir.ui.menu,name:menu_template"
 msgid "Products"
@@ -945,6 +989,10 @@ msgstr "Service"
 msgctxt "view:product.category:"
 msgid "Children"
 msgstr "Enfants"
+
+msgctxt "view:product.configuration:"
+msgid "Sequences"
+msgstr "Séquences"
 
 msgctxt "view:product.template:"
 msgid "General"

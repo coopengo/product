@@ -16,15 +16,29 @@ this repository contains the full copyright notices and license terms. -->
             <field name="name">tryton-product</field>
             <field name="path">icons/tryton-product.svg</field>
         </record>
-        <menuitem name="Product" id="menu_main_product" sequence="1"
+        <menuitem
+            name="Product"
+            sequence="30"
+            id="menu_main_product"
             icon="tryton-product"/>
 
-        <menuitem name="Configuration" parent="menu_main_product" id="menu_configuration" sequence="0" icon="tryton-settings"/>
+        <menuitem
+            name="Configuration"
+            parent="menu_main_product"
+            sequence="0"
+            id="menu_configuration"
+            icon="tryton-settings"/>
         <record model="ir.ui.menu-res.group"
             id="menu_product_group_product_admin">
             <field name="menu" ref="menu_configuration"/>
             <field name="group" ref="group_product_admin"/>
         </record>
+
+        <menuitem
+            name="Reporting"
+            parent="menu_main_product"
+            sequence="100"
+            id="menu_reporting"/>
 
         <record model="ir.ui.view" id="template_view_tree">
             <field name="model">product.template</field>
@@ -53,8 +67,11 @@ this repository contains the full copyright notices and license terms. -->
             <field name="act_window" ref="act_template_form"/>
         </record>
 
-        <menuitem parent="menu_main_product" sequence="1" id="menu_template"
-            action="act_template_form"/>
+        <menuitem
+            parent="menu_main_product"
+            action="act_template_form"
+            sequence="10"
+            id="menu_template"/>
 
         <record model="ir.action.act_window" id="act_template_by_category">
             <field name="name">Product by Category</field>
@@ -126,24 +143,12 @@ this repository contains the full copyright notices and license terms. -->
             <field name="act_window" ref="act_product_form"/>
         </record>
 
-        <menuitem parent="menu_template" sequence="1" id="menu_product"
-            action="act_product_form" icon="tryton-list"/>
-
-        <record model="ir.model.access" id="access_product">
-            <field name="model" search="[('model', '=', 'product.product')]"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="False"/>
-            <field name="perm_create" eval="False"/>
-            <field name="perm_delete" eval="False"/>
-        </record>
-        <record model="ir.model.access" id="access_product_admin">
-            <field name="model" search="[('model', '=', 'product.product')]"/>
-            <field name="group" ref="group_product_admin"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="True"/>
-            <field name="perm_create" eval="True"/>
-            <field name="perm_delete" eval="True"/>
-        </record>
+        <menuitem
+            parent="menu_template"
+            action="act_product_form"
+            sequence="10"
+            id="menu_product"
+            icon="tryton-list"/>
 
         <record model="ir.model.access" id="access_product_template">
             <field name="model" search="[('model', '=', 'product.template')]"/>
@@ -204,25 +209,8 @@ this repository contains the full copyright notices and license terms. -->
             <field name="name">identifier_list_sequence</field>
         </record>
 
-        <record model="ir.model.access" id="access_product_identifier">
-            <field name="model" search="[('model', '=', 'product.identifier')]"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="False"/>
-            <field name="perm_create" eval="False"/>
-            <field name="perm_delete" eval="False"/>
-        </record>
-        <record model="ir.model.access" id="access_product_identifier_admin">
-            <field name="model" search="[('model', '=', 'product.identifier')]"/>
-            <field name="group" ref="group_product_admin"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="True"/>
-            <field name="perm_create" eval="True"/>
-            <field name="perm_delete" eval="True"/>
-        </record>
-
         <record model="ir.sequence.type" id="sequence_type_product">
-            <field name="name">Product</field>
-            <field name="code">product.product</field>
+            <field name="name">Variant</field>
         </record>
         <record model="ir.sequence.type-res.group"
             id="sequence_type_product_group_admin">
@@ -232,6 +220,19 @@ this repository contains the full copyright notices and license terms. -->
         <record model="ir.sequence.type-res.group"
             id="sequence_type_product_group_product_admin">
             <field name="sequence_type" ref="sequence_type_product"/>
+            <field name="group" ref="group_product_admin"/>
+        </record>
+        <record model="ir.sequence.type" id="sequence_type_template">
+            <field name="name">Product</field>
+        </record>
+        <record model="ir.sequence.type-res.group"
+            id="sequence_type_template_group_admin">
+            <field name="sequence_type" ref="sequence_type_template"/>
+            <field name="group" ref="res.group_admin"/>
+        </record>
+        <record model="ir.sequence.type-res.group"
+            id="sequence_type_template_group_template_admin">
+            <field name="sequence_type" ref="sequence_type_template"/>
             <field name="group" ref="group_product_admin"/>
         </record>
 

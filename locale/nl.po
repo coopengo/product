@@ -2,6 +2,10 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=utf-8\n"
 
+msgctxt "field:ir.configuration,product_price_decimal:"
+msgid "Product Price Decimal"
+msgstr "Productprijs decimaal (kostprijs?)"
+
 msgctxt "field:product.category,childs:"
 msgid "Children"
 msgstr "Onderliggende niveaus"
@@ -14,11 +18,19 @@ msgctxt "field:product.category,parent:"
 msgid "Parent"
 msgstr "Bovenliggend niveau"
 
+msgctxt "field:product.category,templates:"
+msgid "Products"
+msgstr "Producten"
+
 msgctxt "field:product.configuration,default_cost_price_method:"
 msgid "Default Cost Method"
 msgstr "Standaard kostenmethode"
 
 msgctxt "field:product.configuration,product_sequence:"
+msgid "Variant Sequence"
+msgstr "Variantsequentie"
+
+msgctxt "field:product.configuration,template_sequence:"
 msgid "Product Sequence"
 msgstr "Productvolgorde"
 
@@ -123,6 +135,10 @@ msgctxt "field:product.product,default_uom_category:"
 msgid "Default UOM Category"
 msgstr "Standaard maateenheid-categorie"
 
+msgctxt "field:product.product,default_uom_digits:"
+msgid "Default Unit Digits"
+msgstr "standaard maateenheid decimalen"
+
 msgctxt "field:product.product,description:"
 msgid "Description"
 msgstr "Omschrijving"
@@ -175,6 +191,10 @@ msgctxt "field:product.template,code:"
 msgid "Code"
 msgstr "Code"
 
+msgctxt "field:product.template,code_readonly:"
+msgid "Code Readonly"
+msgstr "Code Alleen lezen"
+
 msgctxt "field:product.template,consumable:"
 msgid "Consumable"
 msgstr "verbruiksartikelen"
@@ -198,6 +218,10 @@ msgstr "Standaard ME"
 msgctxt "field:product.template,default_uom_category:"
 msgid "Default UOM Category"
 msgstr "Standaard maateenheid-categorie"
+
+msgctxt "field:product.template,default_uom_digits:"
+msgid "Default Unit Digits"
+msgstr "standaard maateenheid decimalen"
 
 msgctxt "field:product.template,list_price:"
 msgid "List Price"
@@ -284,8 +308,12 @@ msgid "The default cost price method for new products."
 msgstr "De standaard kostprijsmethode voor nieuwe producten."
 
 msgctxt "help:product.configuration,product_sequence:"
-msgid "Used to generate the product code."
-msgstr "Gebruikt om de productcode te genereren."
+msgid "Used to generate the last part of the product code."
+msgstr "Wordt gebruikt om het laatste deel van de productcode te genereren."
+
+msgctxt "help:product.configuration,template_sequence:"
+msgid "Used to generate the first part of the product code."
+msgstr "Wordt gebruikt om het eerste deel van de productcode te genereren."
 
 msgctxt ""
 "help:product.configuration.default_cost_price_method,default_cost_price_method:"
@@ -435,13 +463,18 @@ msgctxt "model:ir.action,name:act_category_list"
 msgid "Categories"
 msgstr "Categorieën"
 
+msgctxt "model:ir.action,name:act_category_product"
+msgid "Add products"
+msgstr "Producten toevoegen"
+
 msgctxt "model:ir.action,name:act_category_tree"
 msgid "Categories"
 msgstr "Categorieën"
 
+#, fuzzy
 msgctxt "model:ir.action,name:act_product_configuration_form"
-msgid "Product Configuration"
-msgstr "Product configuratie"
+msgid "Configuration"
+msgstr "Instellingen"
 
 msgctxt "model:ir.action,name:act_product_form"
 msgid "Variants"
@@ -459,9 +492,10 @@ msgctxt "model:ir.action,name:act_template_form"
 msgid "Products"
 msgstr "Producten"
 
+#, fuzzy
 msgctxt "model:ir.action,name:act_uom_category_form"
-msgid "Categories of Unit of Measure"
-msgstr "Maateeheidcategorieën"
+msgid "Categories"
+msgstr "Categorieën"
 
 msgctxt "model:ir.action,name:act_uom_form"
 msgid "Units of Measure"
@@ -481,7 +515,7 @@ msgstr "Onverenigbare factor en tarief op standaard maateenheid \"%(uom)s\"."
 
 msgctxt "model:ir.message,text:msg_uom_modify_category"
 msgid "You cannot modify the category of UOM \"%(uom)s\"."
-msgstr "U kunt de standaardmaateenheidscategorie  \"%(uom)s\" niet wijzigen."
+msgstr "U kunt de standaardmaateenheidscategorie \"%(uom)s\" niet wijzigen."
 
 msgctxt "model:ir.message,text:msg_uom_modify_factor"
 msgid "You cannot modify the factor of UOM \"%(uom)s\"."
@@ -492,8 +526,8 @@ msgid ""
 "If the UOM is still not used, you can delete it otherwise you can deactivate"
 " it and create a new one."
 msgstr ""
-"Als de maateenheid nog  niet wordt gebruikt, kunt u deze verwijderen, anders"
-" kunt u deze deactiveren en een nieuwe maken."
+"Als de maateenheid nog niet wordt gebruikt, kunt u deze verwijderen, anders "
+"kunt u deze deactiveren en een nieuwe maken."
 
 msgctxt "model:ir.message,text:msg_uom_modify_rate"
 msgid "You cannot modify the rate of UOM \"%(uom)s\"."
@@ -503,7 +537,15 @@ msgctxt "model:ir.message,text:msg_uom_no_zero_factor_rate"
 msgid "Rate and factor can not be both equal to zero."
 msgstr "De waarde en factor kunnen niet beiden gelijk zijn aan nul."
 
+msgctxt "model:ir.model.button,string:category_add_products_button"
+msgid "Add products"
+msgstr "Producten toevoegen"
+
 msgctxt "model:ir.sequence.type,name:sequence_type_product"
+msgid "Variant"
+msgstr "Variant"
+
+msgctxt "model:ir.sequence.type,name:sequence_type_template"
 msgid "Product"
 msgstr "Product"
 
@@ -527,9 +569,14 @@ msgctxt "model:ir.ui.menu,name:menu_product"
 msgid "Variants"
 msgstr "varianten"
 
+#, fuzzy
 msgctxt "model:ir.ui.menu,name:menu_product_configuration"
-msgid "Product Configuration"
-msgstr "Product configuratie"
+msgid "Configuration"
+msgstr "Instellingen"
+
+msgctxt "model:ir.ui.menu,name:menu_reporting"
+msgid "Reporting"
+msgstr "Rapporten"
 
 msgctxt "model:ir.ui.menu,name:menu_template"
 msgid "Products"
@@ -946,6 +993,10 @@ msgstr "Service"
 msgctxt "view:product.category:"
 msgid "Children"
 msgstr "Onderliggende niveaus"
+
+msgctxt "view:product.configuration:"
+msgid "Sequences"
+msgstr "Reeksen"
 
 msgctxt "view:product.template:"
 msgid "General"

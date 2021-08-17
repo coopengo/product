@@ -1,3 +1,16 @@
+Version 6.0.0 - 2021-05-03
+* Bug fixes (see mercurial logs for details)
+* Deactivate variants when product is deactivated
+* Allow multiple templates to be added/removed on a category
+
+Version 5.8.0 - 2020-11-02
+* Bug fixes (see mercurial logs for details)
+* Remove support for Python 3.5
+* Allow the product template code to be set from a sequence
+* Set code column first in template tree view
+* Add default order on product and template
+* Check price_decimal configuration
+
 Version 5.6.0 - 2020-05-04
 * Bug fixes (see mercurial logs for details)
 * Add round_price
