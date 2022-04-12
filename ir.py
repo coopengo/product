@@ -18,7 +18,7 @@ class Configuration(metaclass=PoolMeta):
         table = cls.__table__()
 
         # set price_decimal to 6
-        cursor = Transaction().connection.cursor
+        cursor = Transaction().connection.cursor()
         cursor.execute(*table.update([table.product_price_decimal], [6]))
 
     @classmethod
