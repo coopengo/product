@@ -4,7 +4,7 @@ from trytond.config import config
 from trytond.model import fields
 from trytond.pool import PoolMeta
 
-price_decimal = config.getint('product', 'price_decimal', default=4)
+price_decimal = config.getint('product', 'price_decimal', default=6)
 
 
 class Configuration(metaclass=PoolMeta):
