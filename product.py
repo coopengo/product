@@ -44,6 +44,8 @@ price_digits = (16, price_decimal)
 
 def round_price(value, rounding=None):
     "Round price using the price digits"
+    if isinstance(value, int):
+        return Decimal(value)
     return value.quantize(
         Decimal(1) / 10 ** price_digits[1], rounding=rounding)
 
@@ -444,6 +446,9 @@ class Product(
     def get_template(self, name):
         value = getattr(self.template, name)
         if isinstance(value, Model):
+            field = getattr(self.__class__, name)
+            if field._type == 'reference':
+                return str(value)
             return value.id
         elif (isinstance(value, (list, tuple))
                 and value and isinstance(value[0], Model)):
@@ -579,7 +584,10 @@ class Product(
 
     @property
     def list_price_used(self):
-        return self.template.get_multivalue('list_price')
+        transaction = Transaction()
+        with transaction.reset_context(), \
+                transaction.set_context(self._context):
+            return self.template.get_multivalue('list_price')
 
     @classmethod
     def sync_code(cls, products):
